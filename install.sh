@@ -1,8 +1,5 @@
 #!/bin/bash
 
-# Set default PROFILE_PATH if not already set
-export PROFILE_PATH="${PROFILE_PATH:-.bashrc}"
-
 # Get the directory where this script is located
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
