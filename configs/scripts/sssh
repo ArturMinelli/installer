@@ -1,0 +1,54 @@
+#!/bin/bash
+
+CONFIG_FILE="${HOME}/scripts/config/sssh.json"
+
+# Build connection list with nice formatting
+CONNECTION_NAMES=$(jq -r '.connections[] | "\(.name)|\(.host)|\(.port)|\(.username)"' "$CONFIG_FILE" | \
+    while IFS='|' read -r name host port username; do
+        printf "%-15s  %s@%s\n" "$name" "$username" "$host"
+    done)
+
+# First select: Choose connection
+SELECTED=$(echo "$CONNECTION_NAMES" | gum choose --header "Select a connection:")
+
+if [ -z "$SELECTED" ]; then
+    exit 0
+fi
+
+# Extract connection name from selection (first word)
+SELECTED_NAME=$(echo "$SELECTED" | awk '{print $1}')
+
+# Get connection details by name
+CONNECTION=$(jq -r --arg name "$SELECTED_NAME" '.connections[] | select(.name == $name) | "\(.host)|\(.port)|\(.username)"' "$CONFIG_FILE")
+IFS='|' read -r host port username <<< "$CONNECTION"
+
+# Second select: Choose connection method
+METHOD=$(gum choose --header "How would you like to connect?" \
+    "SSH" \
+    "Cursor IDE Remote")
+
+if [ -z "$METHOD" ]; then
+    exit 0
+fi
+
+# Display connection settings with gum
+echo ""
+gum style --border double --border-foreground 212 --padding "1 2" --margin "1" --width 50 \
+    "$(gum style --foreground 212 --bold "Connection Settings")" \
+    "" \
+    "$(gum style --foreground 86 "Name:     ")$(gum style --foreground 255 "$SELECTED_NAME")" \
+    "$(gum style --foreground 86 "Host:     ")$(gum style --foreground 255 "$host")" \
+    "$(gum style --foreground 86 "Port:     ")$(gum style --foreground 255 "$port")" \
+    "$(gum style --foreground 86 "Username: ")$(gum style --foreground 255 "$username")" \
+    "$(gum style --foreground 86 "Method:   ")$(gum style --foreground 255 "$METHOD")"
+echo ""
+
+# Execute based on method
+case "$METHOD" in
+    "SSH")
+        ssh -p "$port" "$username@$host"
+        ;;
+    "Cursor IDE Remote")
+        cursor --remote "ssh-remote+$username@$host:$port"
+        ;;
+esac

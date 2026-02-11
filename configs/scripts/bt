@@ -1,0 +1,100 @@
+#!/bin/bash
+
+# Color scheme for fzf
+export FZF_DEFAULT_OPTS="
+  --color=fg:#f8f8f2,bg:#282a36,hl:#bd93f9
+  --color=fg+:#f8f8f2,bg+:#44475a,hl+:#bd93f9
+  --color=info:#ffb86c,prompt:#50fa7b,pointer:#ff79c6
+  --color=marker:#ff79c6,spinner:#ffb86c,header:#6272a4
+  --height=~50%
+  --reverse
+  --pointer=▶
+  --marker=✓
+  --prompt=🔎
+  --preview-window=right:30%:+2:noborder
+  --preview='echo \"📱 Device Information\" && echo \"━━━━━━━━━━━━━━━━━━━━\" && echo \"Name: {1}\" && echo \"MAC:  {2}\"'
+"
+
+# Display header with gum
+gum style \
+  --foreground "#bd93f9" \
+  --bold \
+  --padding "1 2" \
+  --border rounded \
+  --border-foreground "#bd93f9" \
+  "Bluetooth Device Selector"
+
+echo ""
+
+# Build device list with name and MAC address from bt-device --list
+DEVICE_LIST=$(bt-device --list | grep -v "^Added devices:" | awk -F'[()]' '{
+    if (NF >= 2) {
+        device_name = $1
+        gsub(/^[ \t]+|[ \t]+$/, "", device_name)
+        device_mac = $2
+        if (device_name == "") {
+            device_name = device_mac
+        }
+        print device_name " | " device_mac
+    }
+}')
+
+if [ -z "$DEVICE_LIST" ]; then
+    gum style \
+      --foreground "#ff5555" \
+      --padding "1 2" \
+      "⚠️  No Bluetooth devices found"
+    exit 1
+fi
+
+SELECTED_DEVICE=$(echo "$DEVICE_LIST" | fzf \
+  --header "$(gum style --foreground "#50fa7b" "Select a Bluetooth device to connect:")" \
+  --preview 'echo "📱 Device Information" && echo "━━━━━━━━━━━━━━━━━━━━" && echo "Name: $(echo {} | awk -F"|" "{print \$1}" | xargs)" && echo "MAC:  $(echo {} | awk -F"|" "{print \$2}" | xargs)"')
+
+if [ -z "$SELECTED_DEVICE" ]; then
+    gum style \
+      --foreground "#ffb86c" \
+      --padding "1 2" \
+      "ℹ️  No device selected. Exiting..."
+    exit 0
+fi
+
+SELECTED_MAC=$(echo "$SELECTED_DEVICE" | awk -F'|' '{print $2}' | xargs)
+SELECTED_NAME=$(echo "$SELECTED_DEVICE" | awk -F'|' '{print $1}' | xargs)
+
+echo ""
+gum style \
+  --foreground "#50fa7b" \
+  --bold \
+  --padding "1 2" \
+  "🔗 Connecting to: $SELECTED_NAME"
+
+gum style \
+  --foreground "#6272a4" \
+  --padding "0 2" \
+  "   MAC Address: $SELECTED_MAC"
+
+echo ""
+
+# Connect to the device
+if bt-device --connect "$SELECTED_MAC"; then
+    echo ""
+    gum style \
+      --foreground "#50fa7b" \
+      --bold \
+      --padding "1 2" \
+      --border rounded \
+      --border-foreground "#50fa7b" \
+      "✅ Successfully connected to $SELECTED_NAME"
+else
+    echo ""
+    gum style \
+      --foreground "#ff5555" \
+      --bold \
+      --padding "1 2" \
+      --border rounded \
+      --border-foreground "#ff5555" \
+      "❌ Failed to connect to $SELECTED_NAME"
+    exit 1
+fi
+

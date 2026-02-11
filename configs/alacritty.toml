@@ -1,0 +1,97 @@
+[env]
+TERM = "xterm-256color"
+
+[window]
+decorations = "Buttonless"
+opacity = 0.95
+blur = true
+dynamic_padding = true
+option_as_alt = "Both"
+
+[window.padding]
+x = 15
+y = 15
+
+[font]
+size = 13
+
+[font.normal]
+family = "JetBrains Mono"
+
+[font.bold]
+family = "JetBrains Mono"
+
+[font.italic]
+family = "JetBrains Mono"
+
+[font.bold_italic]
+family = "JetBrains Mono"
+
+[cursor]
+style = "Block"
+unfocused_hollow = true
+blink_interval = 750
+
+[scrolling]
+history = 10000
+multiplier = 3
+
+[colors.primary]
+background = "#0a0e27"
+foreground = "#e1e4f0"
+
+[colors.cursor]
+text = "#0a0e27"
+cursor = "#4fc3f7"
+
+[colors.selection]
+text = "#0a0e27"
+background = "#64b5f6"
+
+[colors.normal]
+black = "#1e2132"
+red = "#ff6b9d"
+green = "#c3e88d"
+yellow = "#ffcb6b"
+blue = "#82aaff"
+magenta = "#c792ea"
+cyan = "#89ddff"
+white = "#eeffff"
+
+[colors.bright]
+black = "#353a52"
+red = "#ff9cac"
+green = "#d4f88d"
+yellow = "#ffe585"
+blue = "#9cc4ff"
+magenta = "#e1acff"
+cyan = "#a3f7ff"
+white = "#ffffff"
+
+[bell]
+animation = "EaseOutExpo"
+duration = 0
+color = "#ff6b9d"
+
+[keyboard]
+bindings = [
+  # Paste
+  { key = "V", mods = "Control", action = "Paste" },
+  { key = "V", mods = "Control|Shift", action = "Paste" },
+  
+  # Copy
+  { key = "C", mods = "Control|Shift", action = "Copy" },
+  
+  # Word deletion
+  { key = "Back", mods = "Control", chars = "\u0017" },  # Control+Backspace deletes word
+  { key = "Delete", mods = "Control", chars = "\u001b[3;5~" },  # Control+Delete deletes word forward
+  
+  # Clear terminal
+  { key = "L", mods = "Control", action = "ClearHistory" },
+  
+  # Scroll
+  { key = "PageUp", mods = "Shift", action = "ScrollPageUp", mode = "~Alt" },
+  { key = "PageDown", mods = "Shift", action = "ScrollPageDown", mode = "~Alt" },
+  { key = "Home", mods = "Shift", action = "ScrollToTop", mode = "~Alt" },
+  { key = "End", mods = "Shift", action = "ScrollToBottom", mode = "~Alt" },
+]
